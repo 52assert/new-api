@@ -130,7 +130,11 @@ export function SidebarModulesSection({
       },
       redemption: {
         title: t('Redeem codes'),
-        description: t('Create and review invite or credit codes.'),
+        description: t('Manage redemption codes for quota top-up'),
+      },
+      invite: {
+        title: t('Admin Invite Codes'),
+        description: t('Generate and track one-time invite codes'),
       },
       user: {
         title: t('Users'),

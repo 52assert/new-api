@@ -21,7 +21,6 @@ import { createSectionRegistry } from '../utils/section-registry'
 import { BasicAuthSection } from './basic-auth-section'
 import { BotProtectionSection } from './bot-protection-section'
 import { CustomOAuthSection } from './custom-oauth/custom-oauth-section'
-import { InviteCodeSection } from './invite-code-section'
 import { OAuthSection } from './oauth-section'
 import { PasskeySection } from './passkey-section'
 
@@ -46,12 +45,6 @@ const AUTH_SECTIONS = [
         }}
       />
     ),
-  },
-  {
-    id: 'invite-codes',
-    titleKey: 'Admin Invite Codes',
-    descriptionKey: 'Generate and track one-time invite codes',
-    build: () => <InviteCodeSection />,
   },
   {
     id: 'oauth',

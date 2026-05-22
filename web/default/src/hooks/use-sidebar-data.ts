@@ -32,6 +32,7 @@ import {
   MessageSquare,
   CreditCard,
   ListTodo,
+  ShieldCheck,
   Settings,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -139,6 +140,11 @@ export function useSidebarData(): SidebarData {
             title: t('Redemption Codes'),
             url: '/redemption-codes',
             icon: Ticket,
+          },
+          {
+            title: t('Admin Invite Codes'),
+            url: '/invite-codes',
+            icon: ShieldCheck,
           },
           {
             title: t('Subscription Management'),
