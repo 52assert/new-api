@@ -85,13 +85,23 @@ func validateInviteCodeExpiredTime(c *gin.Context, expired int64) (bool, string)
 func GetAllInviteCodes(c *gin.Context) {
 	pageInfo := common.GetPageQuery(c)
 	keyword := strings.TrimSpace(c.Query("keyword"))
+	statusFilters := parseListStatusFilters(c)
 	var inviteCodes []*model.InviteCode
 	var total int64
 	var err error
 	if keyword == "" {
-		inviteCodes, total, err = model.GetAllInviteCodes(pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+		inviteCodes, total, err = model.GetAllInviteCodes(
+			pageInfo.GetStartIdx(),
+			pageInfo.GetPageSize(),
+			statusFilters,
+		)
 	} else {
-		inviteCodes, total, err = model.SearchInviteCodes(keyword, pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+		inviteCodes, total, err = model.SearchInviteCodes(
+			keyword,
+			pageInfo.GetStartIdx(),
+			pageInfo.GetPageSize(),
+			statusFilters,
+		)
 	}
 	if err != nil {
 		common.ApiError(c, err)

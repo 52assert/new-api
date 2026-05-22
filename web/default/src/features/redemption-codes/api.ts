@@ -34,8 +34,14 @@ import type {
 export async function getRedemptions(
   params: GetRedemptionsParams = {}
 ): Promise<GetRedemptionsResponse> {
-  const { p = 1, page_size = 10 } = params
-  const res = await api.get(`/api/redemption/?p=${p}&page_size=${page_size}`)
+  const { p = 1, page_size = 10, status } = params
+  const res = await api.get('/api/redemption/', {
+    params: {
+      p,
+      page_size,
+      status: status?.length ? status.join(',') : undefined,
+    },
+  })
   return res.data
 }
 
@@ -43,10 +49,15 @@ export async function getRedemptions(
 export async function searchRedemptions(
   params: SearchRedemptionsParams
 ): Promise<GetRedemptionsResponse> {
-  const { keyword = '', p = 1, page_size = 10 } = params
-  const res = await api.get(
-    `/api/redemption/search?keyword=${keyword}&p=${p}&page_size=${page_size}`
-  )
+  const { keyword = '', p = 1, page_size = 10, status } = params
+  const res = await api.get('/api/redemption/search', {
+    params: {
+      keyword,
+      p,
+      page_size,
+      status: status?.length ? status.join(',') : undefined,
+    },
+  })
   return res.data
 }
 

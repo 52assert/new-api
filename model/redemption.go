@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/logger"
@@ -26,7 +27,7 @@ type Redemption struct {
 	ExpiredTime  int64          `json:"expired_time" gorm:"bigint"` // 过期时间，0 表示不过期
 }
 
-func GetAllRedemptions(startIdx int, num int) (redemptions []*Redemption, total int64, err error) {
+func GetAllRedemptions(startIdx int, num int, statusFilters []string) (redemptions []*Redemption, total int64, err error) {
 	// 开始事务
 	tx := DB.Begin()
 	if tx.Error != nil {
@@ -38,15 +39,17 @@ func GetAllRedemptions(startIdx int, num int) (redemptions []*Redemption, total 
 		}
 	}()
 
+	query := applyRedemptionStatusFilter(tx.Model(&Redemption{}), statusFilters)
+
 	// 获取总数
-	err = tx.Model(&Redemption{}).Count(&total).Error
+	err = query.Count(&total).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, 0, err
 	}
 
 	// 获取分页数据
-	err = tx.Order("id desc").Limit(num).Offset(startIdx).Find(&redemptions).Error
+	err = query.Order("id desc").Limit(num).Offset(startIdx).Find(&redemptions).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, 0, err
@@ -60,7 +63,7 @@ func GetAllRedemptions(startIdx int, num int) (redemptions []*Redemption, total 
 	return redemptions, total, nil
 }
 
-func SearchRedemptions(keyword string, startIdx int, num int) (redemptions []*Redemption, total int64, err error) {
+func SearchRedemptions(keyword string, startIdx int, num int, statusFilters []string) (redemptions []*Redemption, total int64, err error) {
 	tx := DB.Begin()
 	if tx.Error != nil {
 		return nil, 0, tx.Error
@@ -80,6 +83,7 @@ func SearchRedemptions(keyword string, startIdx int, num int) (redemptions []*Re
 	} else {
 		query = query.Where("name LIKE ?", keyword+"%")
 	}
+	query = applyRedemptionStatusFilter(query, statusFilters)
 
 	// Get total count
 	err = query.Count(&total).Error
@@ -100,6 +104,43 @@ func SearchRedemptions(keyword string, startIdx int, num int) (redemptions []*Re
 	}
 
 	return redemptions, total, nil
+}
+
+func applyRedemptionStatusFilter(query *gorm.DB, statusFilters []string) *gorm.DB {
+	if len(statusFilters) == 0 {
+		return query
+	}
+
+	now := common.GetTimestamp()
+	conditions := make([]string, 0, len(statusFilters))
+	args := make([]any, 0, len(statusFilters)*2)
+	seen := make(map[string]bool)
+	for _, rawStatus := range statusFilters {
+		status := strings.TrimSpace(rawStatus)
+		if status == "" || seen[status] {
+			continue
+		}
+		seen[status] = true
+
+		switch status {
+		case "1":
+			conditions = append(conditions, "(status = ? AND (expired_time = 0 OR expired_time >= ?))")
+			args = append(args, common.RedemptionCodeStatusEnabled, now)
+		case "2":
+			conditions = append(conditions, "status = ?")
+			args = append(args, common.RedemptionCodeStatusDisabled)
+		case "3":
+			conditions = append(conditions, "status = ?")
+			args = append(args, common.RedemptionCodeStatusUsed)
+		case "expired":
+			conditions = append(conditions, "(status = ? AND expired_time != 0 AND expired_time < ?)")
+			args = append(args, common.RedemptionCodeStatusEnabled, now)
+		}
+	}
+	if len(conditions) == 0 {
+		return query
+	}
+	return query.Where("("+strings.Join(conditions, " OR ")+")", args...)
 }
 
 func GetRedemptionById(id int) (*Redemption, error) {

@@ -29,10 +29,6 @@ export const REDEMPTION_STATUS = {
   USED: 3,
 } as const
 
-export const REDEMPTION_STATUS_VALUES = Object.values(REDEMPTION_STATUS).map(
-  (value) => String(value)
-) as `${number}`[]
-
 // labelKey values are i18n keys; use t(config.labelKey) in components
 export const REDEMPTION_STATUSES: Record<
   number,
@@ -64,6 +60,13 @@ export const REDEMPTION_STATUSES: Record<
 // Virtual status filter value for expired redemption codes
 // Note: "Expired" is not a real DB status, it's computed from expired_time
 export const REDEMPTION_FILTER_EXPIRED = 'expired'
+
+export const REDEMPTION_STATUS_VALUES = [
+  String(REDEMPTION_STATUS.ENABLED),
+  String(REDEMPTION_STATUS.DISABLED),
+  String(REDEMPTION_STATUS.USED),
+  REDEMPTION_FILTER_EXPIRED,
+] as const
 
 export function getRedemptionStatusOptions(t: TFunction) {
   return [

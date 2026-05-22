@@ -105,7 +105,7 @@ func CreateInviteCode(createdBy int, maxUses int, expiredTime int64, remark stri
 	return "", nil, errors.New("failed to generate invite code")
 }
 
-func GetAllInviteCodes(startIdx int, num int) (inviteCodes []*InviteCode, total int64, err error) {
+func GetAllInviteCodes(startIdx int, num int, statusFilters []string) (inviteCodes []*InviteCode, total int64, err error) {
 	tx := DB.Begin()
 	if tx.Error != nil {
 		return nil, 0, tx.Error
@@ -116,12 +116,14 @@ func GetAllInviteCodes(startIdx int, num int) (inviteCodes []*InviteCode, total 
 		}
 	}()
 
-	if err = tx.Model(&InviteCode{}).Count(&total).Error; err != nil {
+	query := applyInviteCodeStatusFilter(tx.Model(&InviteCode{}), statusFilters)
+
+	if err = query.Count(&total).Error; err != nil {
 		tx.Rollback()
 		return nil, 0, err
 	}
 
-	if err = tx.Order("id desc").Limit(num).Offset(startIdx).Find(&inviteCodes).Error; err != nil {
+	if err = query.Order("id desc").Limit(num).Offset(startIdx).Find(&inviteCodes).Error; err != nil {
 		tx.Rollback()
 		return nil, 0, err
 	}
@@ -132,7 +134,7 @@ func GetAllInviteCodes(startIdx int, num int) (inviteCodes []*InviteCode, total 
 	return inviteCodes, total, nil
 }
 
-func SearchInviteCodes(keyword string, startIdx int, num int) (inviteCodes []*InviteCode, total int64, err error) {
+func SearchInviteCodes(keyword string, startIdx int, num int, statusFilters []string) (inviteCodes []*InviteCode, total int64, err error) {
 	tx := DB.Begin()
 	if tx.Error != nil {
 		return nil, 0, tx.Error
@@ -150,6 +152,7 @@ func SearchInviteCodes(keyword string, startIdx int, num int) (inviteCodes []*In
 	} else {
 		query = query.Where("code_prefix LIKE ? OR remark LIKE ?", keyword+"%", "%"+keyword+"%")
 	}
+	query = applyInviteCodeStatusFilter(query, statusFilters)
 
 	if err = query.Count(&total).Error; err != nil {
 		tx.Rollback()
@@ -163,6 +166,44 @@ func SearchInviteCodes(keyword string, startIdx int, num int) (inviteCodes []*In
 		return nil, 0, err
 	}
 	return inviteCodes, total, nil
+}
+
+func applyInviteCodeStatusFilter(query *gorm.DB, statusFilters []string) *gorm.DB {
+	if len(statusFilters) == 0 {
+		return query
+	}
+
+	now := common.GetTimestamp()
+	maxUsesExpr := "CASE WHEN max_uses <= 0 THEN 1 ELSE max_uses END"
+	conditions := make([]string, 0, len(statusFilters))
+	args := make([]any, 0, len(statusFilters)*3)
+	seen := make(map[string]bool)
+	for _, rawStatus := range statusFilters {
+		status := strings.TrimSpace(rawStatus)
+		if status == "" || seen[status] {
+			continue
+		}
+		seen[status] = true
+
+		switch status {
+		case "1":
+			conditions = append(conditions, "(status = ? AND used_count < "+maxUsesExpr+" AND (expired_time = 0 OR expired_time >= ?))")
+			args = append(args, common.InviteCodeStatusEnabled, now)
+		case "2":
+			conditions = append(conditions, "status = ?")
+			args = append(args, common.InviteCodeStatusDisabled)
+		case "3":
+			conditions = append(conditions, "(status = ? OR used_count >= "+maxUsesExpr+")")
+			args = append(args, common.InviteCodeStatusUsed)
+		case "expired":
+			conditions = append(conditions, "(status = ? AND used_count < "+maxUsesExpr+" AND expired_time != 0 AND expired_time < ?)")
+			args = append(args, common.InviteCodeStatusEnabled, now)
+		}
+	}
+	if len(conditions) == 0 {
+		return query
+	}
+	return query.Where("("+strings.Join(conditions, " OR ")+")", args...)
 }
 
 func GetInviteCodeById(id int) (*InviteCode, error) {

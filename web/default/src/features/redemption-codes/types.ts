@@ -50,6 +50,7 @@ export interface ApiResponse<T = unknown> {
 export interface GetRedemptionsParams {
   p?: number
   page_size?: number
+  status?: string[]
 }
 
 export interface GetRedemptionsResponse {
@@ -67,6 +68,7 @@ export interface SearchRedemptionsParams {
   keyword?: string
   p?: number
   page_size?: number
+  status?: string[]
 }
 
 export interface RedemptionFormData {

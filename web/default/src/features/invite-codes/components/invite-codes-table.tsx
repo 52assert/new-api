@@ -74,6 +74,10 @@ export function InviteCodesTable() {
     globalFilter: { enabled: true, key: 'filter' },
     columnFilters: [{ columnId: 'status', searchKey: 'status', type: 'array' }],
   })
+  const statusFilter = useMemo(() => {
+    const value = columnFilters.find((filter) => filter.id === 'status')?.value
+    return Array.isArray(value) ? value.map(String) : []
+  }, [columnFilters])
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [
@@ -81,6 +85,7 @@ export function InviteCodesTable() {
       pagination.pageIndex + 1,
       pagination.pageSize,
       globalFilter,
+      statusFilter,
       refreshTrigger,
     ],
     queryFn: async () => {
@@ -88,6 +93,7 @@ export function InviteCodesTable() {
         p: pagination.pageIndex + 1,
         page_size: pagination.pageSize,
         keyword: globalFilter,
+        status: statusFilter,
       })
       return {
         items: result.data?.items || [],
@@ -132,6 +138,7 @@ export function InviteCodesTable() {
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     manualPagination: true,
+    manualFiltering: true,
     pageCount: Math.ceil((data?.total || 0) / pagination.pageSize),
   })
 

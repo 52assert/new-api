@@ -79,6 +79,10 @@ export function RedemptionsTable() {
     globalFilter: { enabled: true, key: 'filter' },
     columnFilters: [{ columnId: 'status', searchKey: 'status', type: 'array' }],
   })
+  const statusFilter = useMemo(() => {
+    const value = columnFilters.find((filter) => filter.id === 'status')?.value
+    return Array.isArray(value) ? value.map(String) : []
+  }, [columnFilters])
 
   // Fetch data with React Query
   const { data, isLoading, isFetching } = useQuery({
@@ -87,6 +91,7 @@ export function RedemptionsTable() {
       pagination.pageIndex + 1,
       pagination.pageSize,
       globalFilter,
+      statusFilter,
       refreshTrigger,
     ],
     queryFn: async () => {
@@ -94,6 +99,7 @@ export function RedemptionsTable() {
       const params = {
         p: pagination.pageIndex + 1,
         page_size: pagination.pageSize,
+        status: statusFilter,
       }
 
       const result = hasFilter
@@ -141,7 +147,8 @@ export function RedemptionsTable() {
     onPaginationChange,
     onGlobalFilterChange,
     onColumnFiltersChange,
-    manualPagination: !globalFilter,
+    manualPagination: true,
+    manualFiltering: true,
     pageCount: Math.ceil((data?.total || 0) / pagination.pageSize),
   })
 

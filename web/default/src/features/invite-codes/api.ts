@@ -31,9 +31,14 @@ import type {
 export async function getInviteCodes(
   params: GetInviteCodesParams = {}
 ): Promise<PageResponse<InviteCode>> {
-  const { p = 1, page_size = 20, keyword } = params
+  const { p = 1, page_size = 20, keyword, status } = params
   const res = await api.get('/api/invite-code/', {
-    params: { p, page_size, keyword: keyword || undefined },
+    params: {
+      p,
+      page_size,
+      keyword: keyword || undefined,
+      status: status?.length ? status.join(',') : undefined,
+    },
   })
   return res.data
 }

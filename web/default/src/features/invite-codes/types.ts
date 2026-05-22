@@ -61,6 +61,7 @@ export type GetInviteCodesParams = {
   p?: number
   page_size?: number
   keyword?: string
+  status?: string[]
 }
 
 export type CreateInviteCodeData = {
