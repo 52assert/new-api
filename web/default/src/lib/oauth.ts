@@ -81,8 +81,17 @@ export async function getOAuthState(): Promise<string | null> {
   try {
     let path = '/api/oauth/state'
     const affCode = localStorage.getItem('aff')
+    const inviteCode = localStorage.getItem('invite_code')
+    const params = new URLSearchParams()
     if (affCode && affCode.length > 0) {
-      path += `?aff=${affCode}`
+      params.set('aff', affCode)
+    }
+    if (inviteCode && inviteCode.length > 0) {
+      params.set('invite', inviteCode)
+    }
+    const query = params.toString()
+    if (query) {
+      path += `?${query}`
     }
     const res = await api.get(path)
     if (res.data.success) {

@@ -27,6 +27,8 @@ const defaultAuthSettings: AuthSettings = {
   PasswordLoginEnabled: true,
   PasswordRegisterEnabled: true,
   EmailVerificationEnabled: false,
+  InviteCodeRegistrationEnabled: false,
+  InviteCodeRequiredForRegistration: false,
   RegisterEnabled: true,
   EmailDomainRestrictionEnabled: false,
   EmailAliasRestrictionEnabled: false,

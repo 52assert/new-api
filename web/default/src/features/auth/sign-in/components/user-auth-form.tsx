@@ -58,6 +58,10 @@ import { OAuthProviders } from '@/features/auth/components/oauth-providers'
 import { loginFormSchema } from '@/features/auth/constants'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useTurnstile } from '@/features/auth/hooks/use-turnstile'
+import {
+  getInviteCode,
+  saveInviteCode,
+} from '@/features/auth/lib/storage'
 import { beginPasskeyLogin, finishPasskeyLogin } from '@/features/auth/passkey'
 import type { AuthFormProps } from '@/features/auth/types'
 
@@ -70,6 +74,7 @@ export function UserAuthForm({
   const [isLoading, setIsLoading] = useState(false)
   const [wechatCode, setWeChatCode] = useState('')
   const [agreedToLegal, setAgreedToLegal] = useState(false)
+  const [inviteCode, setInviteCode] = useState(() => getInviteCode())
   const [passkeySupported, setPasskeySupported] = useState(false)
   const [isPasskeyLoading, setIsPasskeyLoading] = useState(false)
   const [isWeChatDialogOpen, setIsWeChatDialogOpen] = useState(false)
@@ -93,6 +98,19 @@ export function UserAuthForm({
   const hasUserAgreement = Boolean(status?.user_agreement_enabled)
   const hasPrivacyPolicy = Boolean(status?.privacy_policy_enabled)
   const requiresLegalConsent = hasUserAgreement || hasPrivacyPolicy
+  const hasOAuthLogin = Boolean(
+    status?.github_oauth ||
+      status?.discord_oauth ||
+      status?.oidc_enabled ||
+      status?.linuxdo_oauth ||
+      status?.telegram_oauth ||
+      status?.wechat_login ||
+      (status?.custom_oauth_providers &&
+        status.custom_oauth_providers.length > 0)
+  )
+  const showOAuthInviteCodeField = Boolean(
+    status?.invite_code_registration_enabled && hasOAuthLogin
+  )
   const passkeyButtonDisabled =
     isPasskeyLoading ||
     !passkeySupported ||
@@ -205,6 +223,11 @@ export function UserAuthForm({
     } finally {
       setIsWeChatSubmitting(false)
     }
+  }
+
+  const handleInviteCodeChange = (value: string) => {
+    setInviteCode(value)
+    saveInviteCode(value)
   }
 
   async function handlePasskeyLogin() {
@@ -369,6 +392,22 @@ export function UserAuthForm({
                 {t('Passkey is not supported on this device.')}
               </p>
             )}
+          </div>
+        )}
+
+        {showOAuthInviteCodeField && (
+          <div className='grid gap-2'>
+            <Label htmlFor='oauth-invite-code'>{t('Invite code')}</Label>
+            <Input
+              id='oauth-invite-code'
+              placeholder={t('Enter invite code for new account registration')}
+              value={inviteCode}
+              onChange={(event) => handleInviteCodeChange(event.target.value)}
+              autoComplete='off'
+            />
+            <p className='text-muted-foreground text-xs'>
+              {t('Existing accounts can continue without an invite code.')}
+            </p>
           </div>
         )}
 

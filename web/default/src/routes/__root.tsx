@@ -29,19 +29,27 @@ import { ThemeCustomizationProvider } from '@/context/theme-customization-provid
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { Toaster } from '@/components/ui/sonner'
 import { NavigationProgress } from '@/components/navigation-progress'
+import { saveAffiliateCode, saveInviteCode } from '@/features/auth/lib/storage'
 import { GeneralError } from '@/features/errors/general-error'
 import { NotFoundError } from '@/features/errors/not-found-error'
 import { getSetupStatus } from '@/features/setup/api'
-import { saveAffiliateCode } from '@/features/auth/lib/storage'
 
 function RootComponent() {
   // Load system configuration (logo, system name, etc.) from backend
   useSystemConfig({ autoLoad: true })
+  const showDevtools =
+    import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEVTOOLS === 'true'
 
   useEffect(() => {
     const aff = new URLSearchParams(window.location.search).get('aff')?.trim()
     if (aff) {
       saveAffiliateCode(aff)
+    }
+    const invite = new URLSearchParams(window.location.search)
+      .get('invite')
+      ?.trim()
+    if (invite) {
+      saveInviteCode(invite)
     }
   }, [])
 
@@ -50,7 +58,7 @@ function RootComponent() {
       <NavigationProgress />
       <Outlet />
       <Toaster duration={5000} />
-      {import.meta.env.MODE === 'development' && (
+      {showDevtools && (
         <>
           <ReactQueryDevtools buttonPosition='bottom-left' />
           <TanStackRouterDevtools position='bottom-right' />

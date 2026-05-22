@@ -36,7 +36,6 @@ export let API = axios.create({
   },
 });
 
-
 function redirectToOAuthUrl(url, options = {}) {
   const { openInNewTab = false } = options;
   const targetUrl = typeof url === 'string' ? url : url.toString();
@@ -48,7 +47,6 @@ function redirectToOAuthUrl(url, options = {}) {
 
   window.location.assign(targetUrl);
 }
-
 
 function patchAPIInstance(instance) {
   const originalGet = instance.get.bind(instance);
@@ -243,8 +241,17 @@ export const processGroupsData = (data, userGroup) => {
 export async function getOAuthState() {
   let path = '/api/oauth/state';
   let affCode = localStorage.getItem('aff');
+  let inviteCode = localStorage.getItem('invite_code');
+  const params = new URLSearchParams();
   if (affCode && affCode.length > 0) {
-    path += `?aff=${affCode}`;
+    params.set('aff', affCode);
+  }
+  if (inviteCode && inviteCode.length > 0) {
+    params.set('invite', inviteCode);
+  }
+  const query = params.toString();
+  if (query) {
+    path += `?${query}`;
   }
   const res = await API.get(path);
   const { success, message, data } = res.data;

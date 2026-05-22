@@ -207,6 +207,15 @@ func SetApiRouter(router *gin.Engine) {
 			customOAuthRoute.PUT("/:id", controller.UpdateCustomOAuthProvider)
 			customOAuthRoute.DELETE("/:id", controller.DeleteCustomOAuthProvider)
 		}
+		inviteCodeRoute := apiRouter.Group("/invite-code")
+		inviteCodeRoute.Use(middleware.AdminAuth())
+		{
+			inviteCodeRoute.GET("/", controller.GetAllInviteCodes)
+			inviteCodeRoute.GET("/:id", controller.GetInviteCode)
+			inviteCodeRoute.GET("/:id/usages", controller.GetInviteCodeUsages)
+			inviteCodeRoute.POST("/", controller.AddInviteCode)
+			inviteCodeRoute.PUT("/", controller.UpdateInviteCode)
+		}
 		performanceRoute := apiRouter.Group("/performance")
 		performanceRoute.Use(middleware.RootAuth())
 		{

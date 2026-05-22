@@ -84,6 +84,8 @@ var MaxRecentItems = 1000
 var PasswordLoginEnabled = true
 var PasswordRegisterEnabled = true
 var EmailVerificationEnabled = false
+var InviteCodeRegistrationEnabled = false
+var InviteCodeRequiredForRegistration = false
 var GitHubOAuthEnabled = false
 var LinuxDOOAuthEnabled = false
 var WeChatAuthEnabled = false
@@ -246,6 +248,12 @@ const (
 	RedemptionCodeStatusEnabled  = 1 // don't use 0, 0 is the default value!
 	RedemptionCodeStatusDisabled = 2 // also don't use 0
 	RedemptionCodeStatusUsed     = 3 // also don't use 0
+)
+
+const (
+	InviteCodeStatusEnabled  = 1 // don't use 0, 0 is the default value!
+	InviteCodeStatusDisabled = 2 // also don't use 0
+	InviteCodeStatusUsed     = 3 // also don't use 0
 )
 
 const (

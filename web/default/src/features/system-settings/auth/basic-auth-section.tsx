@@ -41,6 +41,8 @@ const basicAuthSchema = z.object({
   PasswordLoginEnabled: z.boolean(),
   PasswordRegisterEnabled: z.boolean(),
   EmailVerificationEnabled: z.boolean(),
+  InviteCodeRegistrationEnabled: z.boolean(),
+  InviteCodeRequiredForRegistration: z.boolean(),
   RegisterEnabled: z.boolean(),
   EmailDomainRestrictionEnabled: z.boolean(),
   EmailAliasRestrictionEnabled: z.boolean(),
@@ -186,6 +188,56 @@ export function BasicAuthSection({ defaultValues }: BasicAuthSectionProps) {
                   </FormLabel>
                   <FormDescription>
                     {t('Require email verification for new accounts')}
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='InviteCodeRegistrationEnabled'
+            render={({ field }) => (
+              <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                <div className='space-y-0.5'>
+                  <FormLabel className='text-base'>
+                    {t('Invite Code Registration')}
+                  </FormLabel>
+                  <FormDescription>
+                    {t(
+                      'Allow valid admin invite codes to create new accounts, including when normal registration is disabled'
+                    )}
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='InviteCodeRequiredForRegistration'
+            render={({ field }) => (
+              <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                <div className='space-y-0.5'>
+                  <FormLabel className='text-base'>
+                    {t('Require Invite Code')}
+                  </FormLabel>
+                  <FormDescription>
+                    {t(
+                      'Require an admin invite code for every new account while registration is enabled'
+                    )}
                   </FormDescription>
                 </div>
                 <FormControl>

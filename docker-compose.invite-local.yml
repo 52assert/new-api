@@ -1,0 +1,67 @@
+services:
+  new-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: new-api-invite-local:latest
+    container_name: new-api-invite-local
+    restart: unless-stopped
+    command: --log-dir /app/logs
+    ports:
+      - "3000:3000"
+    environment:
+      - TZ=Asia/Shanghai
+      - SQL_DSN=postgresql://root:123456@postgres:5432/new-api
+      - REDIS_CONN_STRING=redis://redis:6379
+      - SESSION_SECRET=invite-local-session-secret
+      - CRYPTO_SECRET=invite-local-crypto-secret
+      - BATCH_UPDATE_ENABLED=true
+    volumes:
+      - invite_local_data:/data
+      - invite_local_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://localhost:3000/api/status | grep -o '\"success\":\\s*true' || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: new-api-invite-local-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=new-api
+      - TZ=Asia/Shanghai
+    volumes:
+      - invite_local_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d new-api"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: new-api-invite-local-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - invite_local_redis_data:/data
+
+volumes:
+  invite_local_data:
+  invite_local_logs:
+  invite_local_pg_data:
+  invite_local_redis_data:

@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/i18n"
@@ -26,6 +28,10 @@ func GenerateOAuthCode(c *gin.Context) {
 	affCode := c.Query("aff")
 	if affCode != "" {
 		session.Set("aff", affCode)
+	}
+	inviteCode := strings.TrimSpace(c.Query("invite"))
+	if inviteCode != "" {
+		session.Set("invite_code", inviteCode)
 	}
 	session.Set("oauth_state", state)
 	err := session.Save()
@@ -112,7 +118,11 @@ func HandleOAuth(c *gin.Context) {
 		case *OAuthRegistrationDisabledError:
 			common.ApiErrorI18n(c, i18n.MsgUserRegisterDisabled)
 		default:
-			common.ApiError(c, err)
+			if model.IsInviteCodeError(err) || errors.Is(err, errInviteRegistrationDisabled) {
+				handleInviteCodeError(c, err)
+			} else {
+				common.ApiError(c, err)
+			}
 		}
 		return
 	}
@@ -232,9 +242,18 @@ func findOrCreateOAuthUser(c *gin.Context, provider oauth.Provider, oauthUser *o
 		}
 	}
 
-	// User doesn't exist, create new user if registration is enabled
-	if !common.RegisterEnabled {
-		return nil, &OAuthRegistrationDisabledError{}
+	inviteCode := ""
+	if rawInviteCode := session.Get("invite_code"); rawInviteCode != nil {
+		if value, ok := rawInviteCode.(string); ok {
+			inviteCode = value
+		}
+	}
+	inviteCode, shouldConsumeInviteCode, err := resolveInviteCodeForRegistration(inviteCode)
+	if err != nil {
+		if errors.Is(err, errInviteRegistrationDisabled) {
+			return nil, &OAuthRegistrationDisabledError{}
+		}
+		return nil, err
 	}
 
 	// Set up new user
@@ -277,6 +296,11 @@ func findOrCreateOAuthUser(c *gin.Context, provider oauth.Provider, oauthUser *o
 			if err := user.InsertWithTx(tx, inviterId); err != nil {
 				return err
 			}
+			if shouldConsumeInviteCode {
+				if err := model.ConsumeInviteCodeWithTx(tx, inviteCode, user.Id, user.Username, provider.GetName(), c.ClientIP(), c.Request.UserAgent()); err != nil {
+					return err
+				}
+			}
 
 			// Create OAuth binding
 			binding := &model.UserOAuthBinding{
@@ -315,6 +339,11 @@ func findOrCreateOAuthUser(c *gin.Context, provider oauth.Provider, oauthUser *o
 				"telegram_id": user.TelegramId,
 			}).Error; err != nil {
 				return err
+			}
+			if shouldConsumeInviteCode {
+				if err := model.ConsumeInviteCodeWithTx(tx, inviteCode, user.Id, user.Username, provider.GetName(), c.ClientIP(), c.Request.UserAgent()); err != nil {
+					return err
+				}
 			}
 
 			return nil

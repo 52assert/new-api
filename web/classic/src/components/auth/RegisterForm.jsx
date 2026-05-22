@@ -80,6 +80,7 @@ const RegisterForm = () => {
     email: '',
     verification_code: '',
     wechat_verification_code: '',
+    invite_code: localStorage.getItem('invite_code') || '',
   });
   const { username, password, password2 } = inputs;
   const [userState, userDispatch] = useContext(UserContext);
@@ -118,6 +119,10 @@ const RegisterForm = () => {
   if (affCode) {
     localStorage.setItem('aff', affCode);
   }
+  let inviteCode = new URLSearchParams(window.location.search).get('invite');
+  if (inviteCode) {
+    localStorage.setItem('invite_code', inviteCode);
+  }
 
   const status = useMemo(() => {
     if (statusState?.status) return statusState.status;
@@ -131,19 +136,33 @@ const RegisterForm = () => {
   }, [statusState?.status]);
   const hasCustomOAuthProviders =
     (status.custom_oauth_providers || []).length > 0;
+  const inviteCodeRegistrationEnabled = Boolean(
+    status.invite_code_registration_enabled,
+  );
+  const inviteCodeRequired =
+    inviteCodeRegistrationEnabled &&
+    (Boolean(status.invite_code_required_for_registration) ||
+      status.register_enabled === false);
   const hasOAuthRegisterOptions = Boolean(
     status.github_oauth ||
-      status.discord_oauth ||
-      status.oidc_enabled ||
-      status.wechat_login ||
-      status.linuxdo_oauth ||
-      status.telegram_oauth ||
-      hasCustomOAuthProviders,
+    status.discord_oauth ||
+    status.oidc_enabled ||
+    status.wechat_login ||
+    status.linuxdo_oauth ||
+    status.telegram_oauth ||
+    hasCustomOAuthProviders,
   );
 
   const [showEmailVerification, setShowEmailVerification] = useState(false);
 
   useEffect(() => {
+    const storedInviteCode =
+      new URLSearchParams(window.location.search).get('invite') ||
+      localStorage.getItem('invite_code') ||
+      '';
+    if (storedInviteCode) {
+      setInputs((inputs) => ({ ...inputs, invite_code: storedInviteCode }));
+    }
     setShowEmailVerification(!!status?.email_verification);
     if (status?.turnstile_check) {
       setTurnstileEnabled(true);
@@ -212,6 +231,13 @@ const RegisterForm = () => {
   };
 
   function handleChange(name, value) {
+    if (name === 'invite_code') {
+      if (value) {
+        localStorage.setItem('invite_code', value);
+      } else {
+        localStorage.removeItem('invite_code');
+      }
+    }
     setInputs((inputs) => ({ ...inputs, [name]: value }));
   }
 
@@ -222,6 +248,10 @@ const RegisterForm = () => {
     }
     if (password !== password2) {
       showInfo('两次输入的密码不一致');
+      return;
+    }
+    if (inviteCodeRequired && !inputs.invite_code?.trim()) {
+      showInfo('请输入邀请码');
       return;
     }
     if (username && password) {
@@ -235,6 +265,8 @@ const RegisterForm = () => {
           affCode = localStorage.getItem('aff');
         }
         inputs.aff_code = affCode;
+        inputs.invite_code =
+          inputs.invite_code || localStorage.getItem('invite_code') || '';
         const res = await API.post(
           `/api/user/register?turnstile=${turnstileToken}`,
           inputs,
@@ -582,6 +614,20 @@ const RegisterForm = () => {
                   prefix={<IconUser />}
                 />
 
+                {inviteCodeRegistrationEnabled && (
+                  <Form.Input
+                    field='invite_code'
+                    label={
+                      inviteCodeRequired ? t('邀请码') + ' *' : t('邀请码')
+                    }
+                    placeholder={t('请输入邀请码')}
+                    name='invite_code'
+                    initValue={inputs.invite_code}
+                    onChange={(value) => handleChange('invite_code', value)}
+                    prefix={<IconKey />}
+                  />
+                )}
+
                 <Form.Input
                   field='password'
                   label={t('密码')}
@@ -781,8 +827,7 @@ const RegisterForm = () => {
         style={{ top: '50%', left: '-120px' }}
       />
       <div className='w-full max-w-sm mt-[60px]'>
-        {showEmailRegister ||
-        !hasOAuthRegisterOptions
+        {showEmailRegister || !hasOAuthRegisterOptions
           ? renderEmailRegisterForm()
           : renderOAuthOptions()}
         {renderWeChatLoginModal()}

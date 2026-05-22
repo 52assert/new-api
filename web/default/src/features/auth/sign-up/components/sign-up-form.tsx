@@ -53,7 +53,11 @@ import { registerFormSchema } from '@/features/auth/constants'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useEmailVerification } from '@/features/auth/hooks/use-email-verification'
 import { useTurnstile } from '@/features/auth/hooks/use-turnstile'
-import { getAffiliateCode } from '@/features/auth/lib/storage'
+import {
+  getAffiliateCode,
+  getInviteCode,
+  saveInviteCode,
+} from '@/features/auth/lib/storage'
 
 export function SignUpForm({
   className,
@@ -92,6 +96,7 @@ export function SignUpForm({
     defaultValues: {
       username: '',
       email: '',
+      invite_code: getInviteCode(),
       password: '',
       confirmPassword: '',
     },
@@ -102,6 +107,15 @@ export function SignUpForm({
   const hasUserAgreement = Boolean(status?.user_agreement_enabled)
   const hasPrivacyPolicy = Boolean(status?.privacy_policy_enabled)
   const requiresLegalConsent = hasUserAgreement || hasPrivacyPolicy
+  const inviteCodeRegistrationEnabled = Boolean(
+    status?.invite_code_registration_enabled
+  )
+  const inviteCodeRequired =
+    inviteCodeRegistrationEnabled &&
+    (Boolean(status?.invite_code_required_for_registration) ||
+      status?.register_enabled === false)
+  const showInviteCodeField =
+    inviteCodeRegistrationEnabled || inviteCodeRequired
   const oauthRegisterEnabled =
     status?.oauth_register_enabled ??
     status?.data?.oauth_register_enabled ??
@@ -147,17 +161,23 @@ export function SignUpForm({
         return
       }
     }
+    if (inviteCodeRequired && !data.invite_code?.trim()) {
+      toast.error(t('Please enter an invite code'))
+      return
+    }
 
     if (!validateTurnstile()) return
 
     setIsLoading(true)
     try {
+      saveInviteCode(data.invite_code || '')
       const res = await register({
         username: data.username,
         password: data.password,
         email: data.email || undefined,
         verification_code: verificationCode || undefined,
         aff_code: getAffiliateCode(),
+        invite_code: data.invite_code?.trim() || undefined,
         turnstile: turnstileToken,
       })
 
@@ -237,6 +257,32 @@ export function SignUpForm({
             </FormItem>
           )}
         />
+
+        {showInviteCodeField && (
+          <FormField
+            control={form.control}
+            name='invite_code'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {t('Invite code')}
+                  {inviteCodeRequired ? ' *' : ''}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t('Enter your invite code')}
+                    {...field}
+                    onChange={(event) => {
+                      field.onChange(event)
+                      saveInviteCode(event.target.value)
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {/* Password Field */}
         <FormField
@@ -319,7 +365,6 @@ export function SignUpForm({
                 )}
               </Button>
             </div>
-
           </>
         )}
 
