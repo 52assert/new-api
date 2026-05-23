@@ -18,13 +18,21 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import React, { useState } from 'react'
 import useDialogState from '@/hooks/use-dialog'
-import { type Redemption, type RedemptionsDialogType } from '../types'
+import {
+  type GeneratedRedemptionCode,
+  type Redemption,
+  type RedemptionsDialogType,
+} from '../types'
 
 type RedemptionsContextType = {
   open: RedemptionsDialogType | null
   setOpen: (str: RedemptionsDialogType | null) => void
   currentRow: Redemption | null
   setCurrentRow: React.Dispatch<React.SetStateAction<Redemption | null>>
+  generatedCodes: GeneratedRedemptionCode[]
+  setGeneratedCodes: React.Dispatch<
+    React.SetStateAction<GeneratedRedemptionCode[]>
+  >
   refreshTrigger: number
   triggerRefresh: () => void
 }
@@ -40,6 +48,9 @@ export function RedemptionsProvider({
 }) {
   const [open, setOpen] = useDialogState<RedemptionsDialogType>(null)
   const [currentRow, setCurrentRow] = useState<Redemption | null>(null)
+  const [generatedCodes, setGeneratedCodes] = useState<
+    GeneratedRedemptionCode[]
+  >([])
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const triggerRefresh = () => setRefreshTrigger((prev) => prev + 1)
@@ -51,6 +62,8 @@ export function RedemptionsProvider({
         setOpen,
         currentRow,
         setCurrentRow,
+        generatedCodes,
+        setGeneratedCodes,
         refreshTrigger,
         triggerRefresh,
       }}

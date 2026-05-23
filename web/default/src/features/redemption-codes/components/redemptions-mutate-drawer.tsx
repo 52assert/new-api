@@ -69,7 +69,7 @@ export function RedemptionsMutateDrawer({
 }: RedemptionsMutateDrawerProps) {
   const { t } = useTranslation()
   const isUpdate = !!currentRow
-  const { triggerRefresh } = useRedemptions()
+  const { setGeneratedCodes, setOpen, triggerRefresh } = useRedemptions()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<RedemptionFormValues>({
@@ -111,16 +111,17 @@ export function RedemptionsMutateDrawer({
         // Create mode
         const result = await createRedemption(basePayload)
         if (result.success) {
-          const count = result.data?.length || 0
+          const generated = (result.data || []).map((code) => ({ code }))
           toast.success(
-            count > 1
+            generated.length > 1
               ? t('Successfully created {{count}} redemption codes', {
-                  count,
+                  count: generated.length,
                 })
               : t(SUCCESS_MESSAGES.REDEMPTION_CREATED)
           )
-          onOpenChange(false)
+          setGeneratedCodes(generated)
           triggerRefresh()
+          setOpen('generated')
         }
       }
     } finally {
