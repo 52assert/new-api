@@ -159,6 +159,19 @@ const CheckinCalendar = ({ t, status, turnstileEnabled, turnstileSiteKey }) => {
     }
   };
 
+  const handleCheckinClick = () => {
+    if (turnstileEnabled) {
+      if (!turnstileSiteKey) {
+        showError('Turnstile is enabled but site key is empty.');
+        return;
+      }
+      setTurnstileWidgetKey((v) => v + 1);
+      setTurnstileModalVisible(true);
+      return;
+    }
+    doCheckin();
+  };
+
   useEffect(() => {
     if (status?.checkin_enabled) {
       fetchCheckinStatus(currentMonth);
@@ -273,7 +286,7 @@ const CheckinCalendar = ({ t, status, turnstileEnabled, turnstileSiteKey }) => {
           type='primary'
           theme='solid'
           icon={<Gift size={16} />}
-          onClick={() => doCheckin()}
+          onClick={handleCheckinClick}
           loading={checkinLoading || !initialLoaded}
           disabled={!initialLoaded || checkinData.stats?.checked_in_today}
           className='!bg-green-600 hover:!bg-green-700'

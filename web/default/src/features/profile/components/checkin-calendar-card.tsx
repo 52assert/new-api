@@ -173,6 +173,19 @@ export function CheckinCalendarCard({
     [refetch, shouldTriggerTurnstile, t, turnstileSiteKey]
   )
 
+  const handleCheckinClick = useCallback(() => {
+    if (turnstileEnabled) {
+      if (!turnstileSiteKey) {
+        toast.error(t('Turnstile is enabled but site key is empty.'))
+        return
+      }
+      setTurnstileWidgetKey((v) => v + 1)
+      setTurnstileModalVisible(true)
+      return
+    }
+    doCheckin()
+  }, [doCheckin, t, turnstileEnabled, turnstileSiteKey])
+
   const handlePrevMonth = () => {
     setCurrentMonth(
       new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
@@ -319,7 +332,7 @@ export function CheckinCalendarCard({
               </div>
             </Button>
             <Button
-              onClick={() => doCheckin()}
+              onClick={handleCheckinClick}
               disabled={checkinLoading || checkedToday}
               size='sm'
               className='w-full shrink-0 sm:w-auto'
