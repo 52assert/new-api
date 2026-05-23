@@ -16,7 +16,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Link } from '@tanstack/react-router'
+import { useEffect } from 'react'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useStatus } from '@/hooks/use-status'
 import { AuthLayout } from '../auth-layout'
@@ -25,7 +26,23 @@ import { SignUpForm } from './components/sign-up-form'
 
 export function SignUp() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { status } = useStatus()
+  const canSignUp =
+    Boolean(status) &&
+    status?.password_register_enabled !== false &&
+    (status?.register_enabled !== false ||
+      Boolean(status?.invite_code_registration_enabled))
+
+  useEffect(() => {
+    if (status && !canSignUp) {
+      navigate({ to: '/sign-in', replace: true })
+    }
+  }, [status, canSignUp, navigate])
+
+  if (status && !canSignUp) {
+    return null
+  }
 
   return (
     <AuthLayout>

@@ -28,8 +28,10 @@ export function SignIn() {
   const { redirect } = useSearch({ from: '/(auth)/sign-in' })
   const { status } = useStatus()
   const canSignUp =
-    status?.register_enabled !== false ||
-    Boolean(status?.invite_code_registration_enabled)
+    Boolean(status) &&
+    status?.password_register_enabled !== false &&
+    (status?.register_enabled !== false ||
+      Boolean(status?.invite_code_registration_enabled))
 
   return (
     <AuthLayout>
