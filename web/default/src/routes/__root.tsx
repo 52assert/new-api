@@ -37,8 +37,6 @@ import { getSetupStatus } from '@/features/setup/api'
 function RootComponent() {
   // Load system configuration (logo, system name, etc.) from backend
   useSystemConfig({ autoLoad: true })
-  const showDevtools =
-    import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEVTOOLS === 'true'
 
   useEffect(() => {
     const aff = new URLSearchParams(window.location.search).get('aff')?.trim()
@@ -57,8 +55,8 @@ function RootComponent() {
     <ThemeCustomizationProvider>
       <NavigationProgress />
       <Outlet />
-      <Toaster duration={5000} />
-      {showDevtools && (
+      <Toaster closeButton duration={5000} position='top-center' richColors />
+      {import.meta.env.MODE === 'development' && (
         <>
           <ReactQueryDevtools buttonPosition='bottom-left' />
           <TanStackRouterDevtools position='bottom-right' />

@@ -32,16 +32,18 @@ export function InviteCodes() {
         <SectionPageLayout.Title>
           {t('Admin Invite Codes')}
         </SectionPageLayout.Title>
-        <SectionPageLayout.Description>
-          {t(
-            'Generate and track one-time invite codes for account registration.'
-          )}
-        </SectionPageLayout.Description>
         <SectionPageLayout.Actions>
           <InviteCodesPrimaryButtons />
         </SectionPageLayout.Actions>
         <SectionPageLayout.Content>
-          <InviteCodesTable />
+          <div className='space-y-3'>
+            <p className='text-muted-foreground text-sm'>
+              {t(
+                'Generate and track one-time invite codes for account registration.'
+              )}
+            </p>
+            <InviteCodesTable />
+          </div>
         </SectionPageLayout.Content>
       </SectionPageLayout>
 

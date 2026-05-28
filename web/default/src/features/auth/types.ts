@@ -127,6 +127,7 @@ export interface SystemStatus {
     privacy_policy_enabled?: boolean
     oauth_register_enabled?: boolean
     register_enabled?: boolean
+    password_login_enabled?: boolean
     password_register_enabled?: boolean
     invite_code_registration_enabled?: boolean
     invite_code_required_for_registration?: boolean
@@ -171,6 +172,7 @@ export interface SystemStatus {
   privacy_policy_enabled?: boolean
   oauth_register_enabled?: boolean
   register_enabled?: boolean
+  password_login_enabled?: boolean
   password_register_enabled?: boolean
   invite_code_registration_enabled?: boolean
   invite_code_required_for_registration?: boolean
