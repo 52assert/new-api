@@ -550,14 +550,22 @@ func (user *User) ClearBinding(bindingType string) error {
 		return errors.New("user id is empty")
 	}
 
+	// 同时接受短类型名（github）与数据库列名（github_id），
+	// 前端的绑定管理弹窗传的是列名，历史调用方传的是短名，两者都需兼容。
 	bindingColumnMap := map[string]string{
-		"email":    "email",
-		"github":   "github_id",
-		"discord":  "discord_id",
-		"oidc":     "oidc_id",
-		"wechat":   "wechat_id",
-		"telegram": "telegram_id",
-		"linuxdo":  "linux_do_id",
+		"email":       "email",
+		"github":      "github_id",
+		"github_id":   "github_id",
+		"discord":     "discord_id",
+		"discord_id":  "discord_id",
+		"oidc":        "oidc_id",
+		"oidc_id":     "oidc_id",
+		"wechat":      "wechat_id",
+		"wechat_id":   "wechat_id",
+		"telegram":    "telegram_id",
+		"telegram_id": "telegram_id",
+		"linuxdo":     "linux_do_id",
+		"linux_do_id": "linux_do_id",
 	}
 
 	column, ok := bindingColumnMap[bindingType]
