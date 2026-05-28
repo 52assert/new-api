@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/url"
 
@@ -40,7 +39,7 @@ func verifyTurnstile(c *gin.Context) bool {
 	}
 	defer rawRes.Body.Close()
 	var res turnstileCheckResponse
-	err = json.NewDecoder(rawRes.Body).Decode(&res)
+	err = common.DecodeJson(rawRes.Body, &res)
 	if err != nil {
 		common.SysLog(err.Error())
 		c.JSON(http.StatusOK, gin.H{
@@ -65,6 +64,35 @@ func TurnstileCheck() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if common.TurnstileCheckEnabled {
 			session := sessions.Default(c)
+			turnstileChecked := session.Get("turnstile")
+			if turnstileChecked != nil {
+				c.Next()
+				return
+			}
+			if !verifyTurnstile(c) {
+				return
+			}
+			session.Set("turnstile", true)
+			if err := session.Save(); err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"message": "无法保存会话信息，请重试",
+					"success": false,
+				})
+				return
+			}
+		}
+		c.Next()
+	}
+}
+
+func TurnstileCheckAnonymous() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if common.TurnstileCheckEnabled {
+			session := sessions.Default(c)
+			if session.Get("username") != nil {
+				c.Next()
+				return
+			}
 			turnstileChecked := session.Get("turnstile")
 			if turnstileChecked != nil {
 				c.Next()

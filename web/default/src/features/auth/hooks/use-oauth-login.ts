@@ -35,16 +35,25 @@ type LogoutRequestConfig = AxiosRequestConfig & {
   skipErrorHandler?: boolean
 }
 
+type OAuthLoginOptions = {
+  turnstileToken?: string
+  validateTurnstile?: () => boolean
+}
+
 /**
  * Hook for managing OAuth login
  */
-export function useOAuthLogin(status: SystemStatus | null) {
+export function useOAuthLogin(
+  status: SystemStatus | null,
+  options: OAuthLoginOptions = {}
+) {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [githubButtonText, setGithubButtonText] = useState('')
   const [githubButtonDisabled, setGithubButtonDisabled] = useState(false)
   const githubTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const { auth } = useAuthStore()
+  const { turnstileToken = '', validateTurnstile } = options
 
   useEffect(() => {
     setGithubButtonText(t('Continue with GitHub'))
@@ -71,6 +80,14 @@ export function useOAuthLogin(status: SystemStatus | null) {
     }
   }
 
+  const prepareOAuthState = async () => {
+    if (validateTurnstile && !validateTurnstile()) {
+      return ''
+    }
+    await resetSession()
+    return getOAuthState(turnstileToken)
+  }
+
   const handleGitHubLogin = async () => {
     if (!status?.github_client_id) return
     if (githubButtonDisabled) return
@@ -92,8 +109,7 @@ export function useOAuthLogin(status: SystemStatus | null) {
     }, 20000)
 
     try {
-      await resetSession()
-      const state = await getOAuthState()
+      const state = await prepareOAuthState()
       if (!state) {
         toast.error(t('Failed to initialize OAuth'))
         if (githubTimeoutRef.current) {
@@ -123,8 +139,7 @@ export function useOAuthLogin(status: SystemStatus | null) {
 
     setIsLoading(true)
     try {
-      await resetSession()
-      const state = await getOAuthState()
+      const state = await prepareOAuthState()
       if (!state) {
         toast.error(t('Failed to initialize OAuth'))
         return
@@ -144,8 +159,7 @@ export function useOAuthLogin(status: SystemStatus | null) {
 
     setIsLoading(true)
     try {
-      await resetSession()
-      const state = await getOAuthState()
+      const state = await prepareOAuthState()
       if (!state) {
         toast.error(t('Failed to initialize OAuth'))
         return
@@ -169,8 +183,7 @@ export function useOAuthLogin(status: SystemStatus | null) {
 
     setIsLoading(true)
     try {
-      await resetSession()
-      const state = await getOAuthState()
+      const state = await prepareOAuthState()
       if (!state) {
         toast.error(t('Failed to initialize OAuth'))
         return
@@ -194,8 +207,7 @@ export function useOAuthLogin(status: SystemStatus | null) {
 
     setIsLoading(true)
     try {
-      await resetSession()
-      const state = await getOAuthState()
+      const state = await prepareOAuthState()
       if (!state) {
         toast.error(t('Failed to initialize OAuth'))
         return

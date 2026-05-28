@@ -33,6 +33,8 @@ type OAuthProvidersProps = {
   status: SystemStatus | null
   disabled?: boolean
   className?: string
+  turnstileToken?: string
+  validateTurnstile?: () => boolean
   onWeChatLogin?: () => void
   isWeChatLoading?: boolean
 }
@@ -49,6 +51,8 @@ export function OAuthProviders({
   status,
   disabled = false,
   className,
+  turnstileToken,
+  validateTurnstile,
   onWeChatLogin,
   isWeChatLoading = false,
 }: OAuthProvidersProps) {
@@ -63,7 +67,7 @@ export function OAuthProviders({
     handleLinuxDOLogin,
     handleTelegramLogin,
     handleCustomOAuthLogin,
-  } = useOAuthLogin(status)
+  } = useOAuthLogin(status, { turnstileToken, validateTurnstile })
 
   const providerButtons: ProviderButton[] = []
 
