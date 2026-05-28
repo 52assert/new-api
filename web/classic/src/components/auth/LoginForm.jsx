@@ -192,7 +192,7 @@ const LoginForm = () => {
 
   const onSubmitWeChatVerificationCode = async () => {
     if (turnstileEnabled && turnstileToken === '') {
-      showInfo('请稍后几秒重试，Turnstile 正在检查用户环境！');
+      showInfo('请先完成页面下方的人机验证，再继续登录。');
       return;
     }
     setWechatCodeSubmitLoading(true);
@@ -229,7 +229,7 @@ const LoginForm = () => {
       return;
     }
     if (turnstileEnabled && turnstileToken === '') {
-      showInfo('请稍后几秒重试，Turnstile 正在检查用户环境！');
+      showInfo('请先完成页面下方的人机验证，再继续登录。');
       return;
     }
     setSubmitted(true);
@@ -320,7 +320,7 @@ const LoginForm = () => {
   // 包装的GitHub登录点击处理
   const ensureTurnstileReady = () => {
     if (turnstileEnabled && turnstileToken === '') {
-      showInfo('请稍后几秒重试，Turnstile 正在检查用户环境！');
+      showInfo('请先完成页面下方的人机验证，再继续登录。');
       return false;
     }
     return true;

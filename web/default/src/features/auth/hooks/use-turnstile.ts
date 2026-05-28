@@ -39,7 +39,9 @@ export function useTurnstile() {
   const validateTurnstile = (): boolean => {
     if (isTurnstileEnabled && !turnstileToken) {
       toast.info(
-        i18next.t('Please wait a moment, human check is initializing...')
+        i18next.t(
+          'Please complete the human verification below before continuing.'
+        )
       )
       return false
     }

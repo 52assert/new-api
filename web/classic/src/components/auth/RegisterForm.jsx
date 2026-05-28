@@ -203,7 +203,7 @@ const RegisterForm = () => {
 
   const onSubmitWeChatVerificationCode = async () => {
     if (turnstileEnabled && turnstileToken === '') {
-      showInfo('请稍后几秒重试，Turnstile 正在检查用户环境！');
+      showInfo('请先完成页面下方的人机验证，再继续注册。');
       return;
     }
     setWechatCodeSubmitLoading(true);
@@ -256,7 +256,7 @@ const RegisterForm = () => {
     }
     if (username && password) {
       if (turnstileEnabled && turnstileToken === '') {
-        showInfo('请稍后几秒重试，Turnstile 正在检查用户环境！');
+        showInfo('请先完成页面下方的人机验证，再继续注册。');
         return;
       }
       setRegisterLoading(true);
@@ -289,7 +289,7 @@ const RegisterForm = () => {
   const sendVerificationCode = async () => {
     if (inputs.email === '') return;
     if (turnstileEnabled && turnstileToken === '') {
-      showInfo('请稍后几秒重试，Turnstile 正在检查用户环境！');
+      showInfo('请先完成页面下方的人机验证，再继续注册。');
       return;
     }
     setVerificationCodeLoading(true);
@@ -313,7 +313,7 @@ const RegisterForm = () => {
 
   const ensureTurnstileReady = () => {
     if (turnstileEnabled && turnstileToken === '') {
-      showInfo('请稍后几秒重试，Turnstile 正在检查用户环境！');
+      showInfo('请先完成页面下方的人机验证，再继续注册。');
       return false;
     }
     return true;

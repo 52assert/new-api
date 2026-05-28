@@ -80,9 +80,9 @@ export function useOAuthLogin(
     }
   }
 
-  const prepareOAuthState = async () => {
+  const prepareOAuthState = async (): Promise<string | null> => {
     if (validateTurnstile && !validateTurnstile()) {
-      return ''
+      return null
     }
     await resetSession()
     return getOAuthState(turnstileToken)
@@ -110,6 +110,15 @@ export function useOAuthLogin(
 
     try {
       const state = await prepareOAuthState()
+      if (state === null) {
+        if (githubTimeoutRef.current) {
+          clearTimeout(githubTimeoutRef.current)
+        }
+        setIsLoading(false)
+        setGithubButtonText(t('Continue with GitHub'))
+        setGithubButtonDisabled(false)
+        return
+      }
       if (!state) {
         toast.error(t('Failed to initialize OAuth'))
         if (githubTimeoutRef.current) {
@@ -140,6 +149,7 @@ export function useOAuthLogin(
     setIsLoading(true)
     try {
       const state = await prepareOAuthState()
+      if (state === null) return
       if (!state) {
         toast.error(t('Failed to initialize OAuth'))
         return
@@ -160,6 +170,7 @@ export function useOAuthLogin(
     setIsLoading(true)
     try {
       const state = await prepareOAuthState()
+      if (state === null) return
       if (!state) {
         toast.error(t('Failed to initialize OAuth'))
         return
@@ -184,6 +195,7 @@ export function useOAuthLogin(
     setIsLoading(true)
     try {
       const state = await prepareOAuthState()
+      if (state === null) return
       if (!state) {
         toast.error(t('Failed to initialize OAuth'))
         return
@@ -208,6 +220,7 @@ export function useOAuthLogin(
     setIsLoading(true)
     try {
       const state = await prepareOAuthState()
+      if (state === null) return
       if (!state) {
         toast.error(t('Failed to initialize OAuth'))
         return
