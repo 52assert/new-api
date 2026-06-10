@@ -24,14 +24,18 @@ interface NotificationState {
   lastReadNotice: string
   // Array of read announcement keys (id or content hash)
   readAnnouncementKeys: string[]
+  // Map of announcement keys that were acknowledged for a specific local date
+  dailyReadAnnouncementKeys: Record<string, string>
   // Timestamp of last "Close Today" action
   closedUntilDate: string | null
 
   // Actions
   markNoticeRead: (noticeContent: string) => void
   markAnnouncementsRead: (keys: string[]) => void
+  markAnnouncementReadToday: (key: string, date: string) => void
   setClosedUntilDate: (date: string | null) => void
   isAnnouncementRead: (key: string) => boolean
+  isAnnouncementReadToday: (key: string, date: string) => boolean
   isNoticeClosed: () => boolean
 }
 
@@ -44,6 +48,7 @@ export const useNotificationStore = create<NotificationState>()(
     (set, get) => ({
       lastReadNotice: '',
       readAnnouncementKeys: [],
+      dailyReadAnnouncementKeys: {},
       closedUntilDate: null,
 
       markNoticeRead: (noticeContent: string) => {
@@ -60,12 +65,25 @@ export const useNotificationStore = create<NotificationState>()(
         }))
       },
 
+      markAnnouncementReadToday: (key: string, date: string) => {
+        set((state) => ({
+          dailyReadAnnouncementKeys: {
+            ...(state.dailyReadAnnouncementKeys || {}),
+            [key]: date,
+          },
+        }))
+      },
+
       setClosedUntilDate: (date: string | null) => {
         set({ closedUntilDate: date })
       },
 
       isAnnouncementRead: (key: string) => {
         return get().readAnnouncementKeys.includes(key)
+      },
+
+      isAnnouncementReadToday: (key: string, date: string) => {
+        return get().dailyReadAnnouncementKeys?.[key] === date
       },
 
       isNoticeClosed: () => {
@@ -81,6 +99,7 @@ export const useNotificationStore = create<NotificationState>()(
       partialize: (state) => ({
         lastReadNotice: state.lastReadNotice,
         readAnnouncementKeys: state.readAnnouncementKeys,
+        dailyReadAnnouncementKeys: state.dailyReadAnnouncementKeys,
         closedUntilDate: state.closedUntilDate,
       }),
     }

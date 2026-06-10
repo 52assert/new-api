@@ -478,6 +478,11 @@ export const STATIC_I18N_KEYS = [
   'Batch detection failed',
   'Batch detection complete: {{channels}} channels, {{add}} to add, {{remove}} to remove, {{fails}} failed',
 
+  // Notifications
+  'System Announcement',
+  'Read for today',
+  'Do not remind again',
+
   // Misc
   'Cancel',
   'Status',

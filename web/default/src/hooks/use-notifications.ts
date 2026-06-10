@@ -37,14 +37,10 @@ function hashString(input: string): string {
 
 /**
  * Generate a unique key for an announcement
- * Prefer backend id, fall back to a content hash so edits register
+ * Include both id and content fingerprint so edits register as a new notice.
  */
 function getAnnouncementKey(item: Record<string, unknown>): string {
   if (!item) return ''
-
-  if (item.id !== undefined && item.id !== null) {
-    return `id:${item.id}`
-  }
 
   const fingerprint = JSON.stringify({
     publishDate: (item?.publishDate as string) || '',
@@ -54,7 +50,19 @@ function getAnnouncementKey(item: Record<string, unknown>): string {
     title: ((item?.title as string) || '').trim(),
     link: ((item?.link as string) || '').trim(),
   })
-  return `hash:${hashString(fingerprint)}`
+  const hash = hashString(fingerprint)
+  if (item.id !== undefined && item.id !== null) {
+    return `id:${item.id}:${hash}`
+  }
+  return `hash:${hash}`
+}
+
+function getTodayKey(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 /**
@@ -91,13 +99,17 @@ export function useNotifications() {
     lastReadNotice,
     markNoticeRead,
     markAnnouncementsRead,
+    markAnnouncementReadToday,
     isAnnouncementRead,
+    isAnnouncementReadToday,
   } = useNotificationStore()
 
   // Extract notice content
   const noticeContent = noticeResponse?.success
     ? (noticeResponse.data || '').trim()
     : ''
+
+  const todayKey = getTodayKey()
 
   // Calculate unread counts
   const unreadCounts = useMemo(() => {
@@ -107,7 +119,9 @@ export function useNotifications() {
     const announcementsUnread = announcements.filter(
       (item: Record<string, unknown>) => {
         const key = getAnnouncementKey(item)
-        return !isAnnouncementRead(key)
+        return (
+          !isAnnouncementRead(key) && !isAnnouncementReadToday(key, todayKey)
+        )
       }
     ).length
 
@@ -116,7 +130,14 @@ export function useNotifications() {
       announcements: announcementsUnread,
       total: noticeUnread + announcementsUnread,
     }
-  }, [noticeContent, lastReadNotice, announcements, isAnnouncementRead])
+  }, [
+    noticeContent,
+    lastReadNotice,
+    announcements,
+    isAnnouncementRead,
+    isAnnouncementReadToday,
+    todayKey,
+  ])
 
   const markAnnouncementsAsRead = () => {
     if (announcements.length > 0) {
@@ -125,6 +146,31 @@ export function useNotifications() {
       )
       markAnnouncementsRead(allKeys)
     }
+  }
+
+  const forcedAnnouncement = useMemo(() => {
+    return (
+      announcements.find((item: Record<string, unknown>) => {
+        const key = getAnnouncementKey(item)
+        return (
+          !isAnnouncementRead(key) && !isAnnouncementReadToday(key, todayKey)
+        )
+      }) || null
+    )
+  }, [announcements, isAnnouncementRead, isAnnouncementReadToday, todayKey])
+
+  const forcedAnnouncementKey = forcedAnnouncement
+    ? getAnnouncementKey(forcedAnnouncement)
+    : ''
+
+  const markForcedAnnouncementReadToday = () => {
+    if (!forcedAnnouncementKey) return
+    markAnnouncementReadToday(forcedAnnouncementKey, todayKey)
+  }
+
+  const dismissForcedAnnouncementPermanently = () => {
+    if (!forcedAnnouncementKey) return
+    markAnnouncementsRead([forcedAnnouncementKey])
   }
 
   // Handle popover open
@@ -165,6 +211,8 @@ export function useNotifications() {
     // Data
     notice: noticeContent,
     announcements,
+    forcedAnnouncement,
+    forcedAnnouncementKey,
     loading: noticeLoading || statusLoading,
 
     // Unread counts
@@ -181,6 +229,10 @@ export function useNotifications() {
     // Actions
     openPopover: handleOpenPopover,
     closePopover: () => setPopoverOpen(false),
+    markForcedAnnouncementReadToday,
+    dismissForcedAnnouncementPermanently,
     refetchNotice,
   }
 }
+
+export { getAnnouncementKey }

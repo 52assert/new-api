@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { useNotifications } from '@/hooks/use-notifications'
 import { useTopNavLinks } from '@/hooks/use-top-nav-links'
 import { ConfigDrawer } from '@/components/config-drawer'
+import { ForcedAnnouncementDialog } from '@/components/forced-announcement-dialog'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { NotificationPopover } from '@/components/notification-popover'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -127,16 +128,25 @@ export function AppHeader({
             )}
             {showSearch && <Search />}
             {showNotifications && (
-              <NotificationPopover
-                open={notifications.popoverOpen}
-                onOpenChange={notifications.setPopoverOpen}
-                unreadCount={notifications.unreadCount}
-                activeTab={notifications.activeTab}
-                onTabChange={notifications.setActiveTab}
-                notice={notifications.notice}
-                announcements={notifications.announcements}
-                loading={notifications.loading}
-              />
+              <>
+                <NotificationPopover
+                  open={notifications.popoverOpen}
+                  onOpenChange={notifications.setPopoverOpen}
+                  unreadCount={notifications.unreadCount}
+                  activeTab={notifications.activeTab}
+                  onTabChange={notifications.setActiveTab}
+                  notice={notifications.notice}
+                  announcements={notifications.announcements}
+                  loading={notifications.loading}
+                />
+                <ForcedAnnouncementDialog
+                  announcement={notifications.forcedAnnouncement}
+                  onReadToday={notifications.markForcedAnnouncementReadToday}
+                  onDismissPermanently={
+                    notifications.dismissForcedAnnouncementPermanently
+                  }
+                />
+              </>
             )}
             <LanguageSwitcher />
             {showConfigDrawer && <ConfigDrawer />}
