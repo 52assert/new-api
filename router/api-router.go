@@ -228,6 +228,15 @@ func SetApiRouter(router *gin.Engine) {
 			performanceRoute.GET("/logs", controller.GetLogFiles)
 			performanceRoute.DELETE("/logs", controller.CleanupLogFiles)
 		}
+		riskGuardRoute := apiRouter.Group("/risk-guard")
+		riskGuardRoute.Use(middleware.RootAuth())
+		{
+			riskGuardRoute.GET("/stats", controller.GetRiskGuardStats)
+			riskGuardRoute.PATCH("/config", controller.UpdateRiskGuardConfig)
+			riskGuardRoute.POST("/block", controller.BlockRiskGuardIP)
+			riskGuardRoute.POST("/unblock", controller.UnblockRiskGuardIP)
+			riskGuardRoute.POST("/sync", controller.SyncRiskGuardCloudflare)
+		}
 		ratioSyncRoute := apiRouter.Group("/ratio_sync")
 		ratioSyncRoute.Use(middleware.RootAuth())
 		{

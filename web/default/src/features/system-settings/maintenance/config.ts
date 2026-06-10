@@ -78,6 +78,7 @@ export const SIDEBAR_MODULES_DEFAULT: SidebarModulesAdminConfig = {
     models: true,
     redemption: true,
     invite: true,
+    risk_guard: true,
     user: true,
     setting: true,
     subscription: true,

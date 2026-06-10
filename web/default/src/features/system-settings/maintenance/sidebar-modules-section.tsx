@@ -142,6 +142,10 @@ export function SidebarModulesSection({
         title: t('Admin Invite Codes'),
         description: t('Generate and track one-time invite codes'),
       },
+      risk_guard: {
+        title: '风控',
+        description: '监控并封禁异常 API 流量',
+      },
       user: {
         title: t('Users'),
         description: t('Administer user accounts and roles.'),

@@ -27,6 +27,7 @@ import {
   ListTodo,
   MessageSquare,
   Radio,
+  ShieldAlert,
   Settings,
   Ticket,
   User,
@@ -141,6 +142,11 @@ export function useSidebarData(): SidebarData {
             title: t('Admin Invite Codes'),
             url: '/invite-codes',
             icon: ShieldCheck,
+          },
+          {
+            title: '风控',
+            url: '/risk-guard',
+            icon: ShieldAlert,
           },
           {
             title: t('Subscription Management'),
