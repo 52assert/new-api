@@ -104,6 +104,10 @@ function statusVariant(status: string) {
   return 'outline'
 }
 
+function entriesOf(record?: Record<string, number> | null) {
+  return Object.entries(record ?? {})
+}
+
 function IpActions({
   row,
   onBlock,
@@ -393,30 +397,26 @@ export function RiskGuard() {
                           </TableCell>
                           <TableCell>
                             <div className='flex flex-wrap gap-1'>
-                              {Object.entries(row.status).map(
-                                ([status, count]) => (
-                                  <Badge
-                                    key={status}
-                                    variant={statusVariant(status)}
-                                  >
-                                    {status} {count}
-                                  </Badge>
-                                )
-                              )}
+                              {entriesOf(row.status).map(([status, count]) => (
+                                <Badge
+                                  key={status}
+                                  variant={statusVariant(status)}
+                                >
+                                  {status} {count}
+                                </Badge>
+                              ))}
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className='flex max-w-[360px] flex-wrap gap-1'>
-                              {Object.entries(row.paths).map(
-                                ([path, count]) => (
-                                  <Badge key={path} variant='outline'>
-                                    <span className='max-w-[220px] truncate font-mono'>
-                                      {path}
-                                    </span>
-                                    {count}
-                                  </Badge>
-                                )
-                              )}
+                              {entriesOf(row.paths).map(([path, count]) => (
+                                <Badge key={path} variant='outline'>
+                                  <span className='max-w-[220px] truncate font-mono'>
+                                    {path}
+                                  </span>
+                                  {count}
+                                </Badge>
+                              ))}
                             </div>
                           </TableCell>
                           <TableCell className='text-right'>
@@ -504,7 +504,7 @@ export function RiskGuard() {
                       />
                     </div>
                     <div className='space-y-1.5'>
-                      <Label>保留秒数</Label>
+                      <Label>记录保留秒数</Label>
                       <Input
                         type='number'
                         min={120}
@@ -518,7 +518,7 @@ export function RiskGuard() {
                       />
                     </div>
                     <div className='space-y-1.5'>
-                      <Label>冷却秒数</Label>
+                      <Label>自动封禁冷却秒数</Label>
                       <Input
                         type='number'
                         min={0}
