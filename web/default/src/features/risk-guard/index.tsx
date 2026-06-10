@@ -154,6 +154,9 @@ export function RiskGuard() {
 
   const stats = data?.data
   const config = stats?.config
+  const topIps = stats?.top_ips ?? []
+  const blockedIps = stats?.blocked_ips ?? []
+  const audit = stats?.audit ?? []
 
   useEffect(() => {
     if (config && !form) {
@@ -235,8 +238,8 @@ export function RiskGuard() {
   })
 
   const topResponses = useMemo(
-    () => stats?.top_ips.find((item) => item.responses > 0),
-    [stats?.top_ips]
+    () => topIps.find((item) => item.responses > 0),
+    [topIps]
   )
 
   const busy = blockMutation.isPending || unblockMutation.isPending
@@ -317,7 +320,7 @@ export function RiskGuard() {
               <CardHeader>
                 <CardDescription>托管封禁</CardDescription>
                 <CardTitle className='text-2xl'>
-                  {metricValue(stats?.blocked_ips.length ?? '-')}
+                  {metricValue(blockedIps.length)}
                 </CardTitle>
               </CardHeader>
             </Card>
@@ -363,8 +366,8 @@ export function RiskGuard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {stats?.top_ips.length ? (
-                      stats.top_ips.map((row) => (
+                    {topIps.length ? (
+                      topIps.map((row) => (
                         <TableRow key={row.ip}>
                           <TableCell>
                             <div className='flex flex-wrap items-center gap-2'>
@@ -574,8 +577,8 @@ export function RiskGuard() {
                     </Button>
                   </div>
                   <div className='flex flex-wrap gap-2'>
-                    {stats?.blocked_ips.length ? (
-                      stats.blocked_ips.map((ip) => (
+                    {blockedIps.length ? (
+                      blockedIps.map((ip) => (
                         <Badge key={ip} variant='outline' className='h-7 gap-2'>
                           <span className='font-mono'>{ip}</span>
                           <button
@@ -675,8 +678,8 @@ export function RiskGuard() {
                   <CardTitle>最近操作</CardTitle>
                 </CardHeader>
                 <CardContent className='max-h-72 space-y-2 overflow-auto'>
-                  {stats?.audit.length ? (
-                    stats.audit.map((item, index) => (
+                  {audit.length ? (
+                    audit.map((item, index) => (
                       <div
                         key={`${item.t}-${index}`}
                         className='border-border border-l-2 py-1 pl-3 text-sm'

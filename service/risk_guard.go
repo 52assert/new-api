@@ -250,6 +250,9 @@ func GetRiskGuardStats() RiskGuardStats {
 	if len(audit) > 80 {
 		audit = audit[:80]
 	}
+	if audit == nil {
+		audit = make([]RiskGuardAudit, 0)
+	}
 
 	return RiskGuardStats{
 		Now:           time.Now().Unix(),
